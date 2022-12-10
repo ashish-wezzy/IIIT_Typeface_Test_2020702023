@@ -1,0 +1,47 @@
+The datastore should have the following schema:
+
+● API name (string)
+● User ID (string)
+● Request time (timestamp)
+● Response time (integer)
+● Response status (success or error)
+
+To perform the sample queries mentioned, the datastore should have the following indexes:
+● API name and user ID
+● User ID and request time
+
+The first query can be performed by grouping the data by API name and calculating the average
+response time for each group. The API with the maximum average response time can then be
+returned.
+
+The second query can be performed by grouping the data by user ID and API name, and then
+calculating the average response time for each group. The API with the maximum average
+response time for each user can then be returned.
+The third query can be performed by grouping the data by API name and request time, and then
+calculating the error percentage for each group. The error percentage can then be returned in
+buckets of 1 hour for 24 hours.
+
+
+To perform the first query, the following MySQL query can be used:
+
+SELECT api_name, AVG(response_time) as avg_response_time
+FROM datastore
+GROUP BY api_name
+ORDER BY avg_response_time DESC
+LIMIT 1
+
+
+To perform the second query, the following MySQL query can be used:
+
+SELECT user_id, api_name, AVG(response_time) as avg_response_time
+FROM datastore
+GROUP BY user_id, api_name
+ORDER BY avg_response_time DESC
+
+
+To perform the third query, the following MySQL query can be used:
+
+SELECT api_name, HOUR(request_time) as request_hour, COUNT(CASE WHEN
+response_status = 'error' THEN 1 END) / COUNT(*) * 100 as error_percentage
+FROM datastore
+GROUP BY api_name, request_hour
